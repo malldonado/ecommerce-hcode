@@ -1,9 +1,9 @@
 {
-    "name": "matheussilvacontat/ecommerce",
+    "name": "matheusmaldonado/ecommerce",
     "authors": [
         {
-            "name": "Hcode Treinamentos",
-            "email": "matheussilvacontat@gmail.com"
+            "name": "Matheus Maldonado",
+            "email": "contato@matheusmaldonado.com"
         }
     ],
     "require": {
@@ -13,7 +13,7 @@
     },
     "autoload": {
         "psr-4": {
-            "": "vendor\\hcodebr\\php-classes\\src"
+            "Hcode\\": "vendor\\hcodebr\\php-classes\\src"
         }
     }
 }
