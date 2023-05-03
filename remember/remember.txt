@@ -1,0 +1,25 @@
+1: Necessary configuration your ambient of development
+2: Update in file composer with command "composer update"
+3: Necessary go to path "C:\Windows\System32\drivers\etc" and update the file hosts inserting the script "127.0.0.1		www.hcodecommerce.com.br" at the end of the file
+4: Finally go to path "C:\xampp\apache\conf\extra" and httpd-vhosts.conf the file hosts inserting the script below
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@hcode.com.br
+    DocumentRoot "C:/xampp/htdocs/ecommerce"
+    ServerName www.hcodecommerce.com.br
+    ErrorLog "logs/dummy-host2.example.com-error.log"
+    CustomLog "logs/dummy-host2.example.com-access.log" common
+	<Directory "C:/xampp/htdocs/ecommerce">
+        Require all granted
+
+        RewriteEngine On
+
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^ index.php [QSA,L]
+	</Directory>
+</VirtualHost>
+
+Obs: Remembering is necessary to place the path of your project in script informed
+
+5: Ready, now is place in url the name site informed "www.hcodecommerce.com.br"

@@ -10,7 +10,7 @@ class User extends Model{
 
     const SESSION = "User";
     const SECRET = "hcodePhp7_Secret";
-    const IV = "hcodePhp7_IV";
+    const METHOD = 'AES-256-CBC';
 
     public static function login($login, $password) {
         $sql = new Sql();
@@ -111,9 +111,22 @@ class User extends Model{
         ));
     }
 
+    static function _generateIV(){
+        $iv = openssl_cipher_iv_length(User::METHOD);
+        $hash = base64_encode(md5(User::SECRET));
+        while(strlen($hash) < $iv){
+            $hash = $hash.$hash;
+        }
+        return substr($hash, 0, $iv);
+    }
+
     public static function getForgot($email) {
         $sql = new Sql(); //create procedures sql
-        $results = $sql->select("SELECT * FROM tb_persons a INNER JOIN tb_users b USING(idperson) WHERE a.desemail = :email", array(
+        $results = $sql->select("SELECT * 
+        FROM tb_persons a 
+        INNER JOIN tb_users b USING(idperson) 
+        WHERE a.desemail = :email;
+        ", array(
             ":email"=>$email
         ));
 
@@ -135,11 +148,9 @@ class User extends Model{
             else {
                 $dataRecovery = $results2[0];
 
-                $code = $dataRecovery["idrecovery"];
+                $enc_iv = self::_generateIV(User::SECRET, openssl_cipher_iv_length(User::METHOD));
 
-                // echo $dataRecovery["idrecovery"];
-
-                // $code = base64_encode(openssl_encrypt($dataRecovery["idrecovery"], "AES-256-CBC", User::SECRET, User::IV));
+                $code = base64_encode(openssl_encrypt($dataRecovery["idrecovery"], "aes-128-cbc", User::SECRET, 0, $enc_iv));
 
                 $link = "https://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
 
@@ -155,25 +166,18 @@ class User extends Model{
             }
         }
     }
+    
 
     public static function validForgotDecrypt($idrecovery) {
+
+        $enc_iv = self::_generateIV(User::SECRET, openssl_cipher_iv_length(User::METHOD));
         
-        // $idrecovery = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, User::SECRET, base64_decode($code), MCRYPT_MODE_CBC);
+        $idrecovery = openssl_decrypt(base64_decode($idrecovery), "aes-128-cbc", User::SECRET, 0, $enc_iv);
     
         $sql = new SQL();
 
-        $results = $sql->select('
-            SELECT *
-            FROM tb_userspasswordsrecoveries a
-            INNER JOIN tb_users b USIGN(iduser)
-            INNER JOIN tb_persons c USIGN(idperson)
-            WHERE
-            a.idrecovery = :idrecovery
-            AND
-            a.dtrecovery IS NULL
-            AND
-            DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
-        ', array(
+        $results = $sql->select("SELECT * FROM tb_userspasswordsrecoveries a INNER JOIN tb_users b USING(iduser) INNER JOIN tb_persons c 
+            USING(idperson) WHERE a.idrecovery = 2 AND a.dtrecovery IS NULL AND DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();", array(
             ":idrecovery" => $idrecovery
         ));
 
@@ -185,9 +189,9 @@ class User extends Model{
         }
     }
 
-    public static function setForgotUsed($idrecovery) {
+    public function setFogotUsed($idrecovery) {
         $sql = new Sql();
-        $sql->query('UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery', array(
+        $sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery", array(
             ":idrecovery" => $idrecovery
         ));
     }
